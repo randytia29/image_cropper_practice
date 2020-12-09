@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:app_settings/app_settings.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,6 +29,30 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   File _pickedImage;
+  StreamSubscription<ConnectivityResult> subscription;
+  @override
+  void initState() {
+    subscription = Connectivity().onConnectivityChanged.listen((result) {
+      if (result == ConnectivityResult.none) {
+        Future.delayed(Duration(milliseconds: 100)).then((value) {
+          showModalBottomSheet(
+              context: context,
+              builder: (builder) {
+                return Container(
+                  color: Colors.red,
+                );
+              });
+        });
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() async {
+    await subscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +78,15 @@ class _ProfilePageState extends State<ProfilePage> {
               _showPickOptionsDialog();
             },
             child: Text('Pick Image'),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          RaisedButton(
+            onPressed: () async {
+              await AppSettings.openWIFISettings();
+            },
+            child: Text('Open Location Settings'),
           )
         ],
       ),
